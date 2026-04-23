@@ -12,7 +12,12 @@ Below we will list some of our skills and potential ideas that we have brainstor
 ### Erik's Skills
 
 ### Nick's Skills
-
+- Web Design & Development
+- Responsive UI Design for Webapps (Desktop & Mobile)
+- Familiarity with building Chrome Browser Extensions
+- Understanding of common web-based cyberattacks
+- Web Pentesting
+- WordPress Exploitation (Currently Studying and Growing)
 ### Lyn's Skills
 
 ## Ideas
