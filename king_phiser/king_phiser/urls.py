@@ -21,4 +21,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("accounts/", include("django.contrib.auth.urls")),
     path('dashboard/', include("dashboard.urls")),
+    path('dashboard/spammer/', include("spammer.urls")),
+    path('dashboard/targeter/', include("targeter.urls")),
 ]

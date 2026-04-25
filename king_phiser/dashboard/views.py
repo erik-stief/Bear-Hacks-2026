@@ -3,5 +3,4 @@ from django.http import HttpResponse
 from django.shortcuts import redirect, render
 
 def dash_home(request):
-    return HttpResponse(
-     'Home Function is redirected to destination_view function')
+    return render(request, 'dashboard/index.html')

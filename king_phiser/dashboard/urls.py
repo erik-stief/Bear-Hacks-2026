@@ -1,4 +1,4 @@
-from django.urls import path, include
+from django.urls import path
 from . import views
 
 app_name = 'dashboard'
@@ -8,10 +8,5 @@ urlpatterns = [
     # Dashboard URLs
     path('', views.dash_home, name='dash_home'),
 
-    # Spammer URL
-    path('spammer/', include("spammer.urls")),
-    
-    # Targeter URL
-    path('targeter/', include("targeter.urls")),
-    
+
 ]
