@@ -21,3 +21,5 @@ Below we will list some of our skills and potential ideas that we have brainstor
 ### Lyn's Skills
 
 ## Ideas
+![ER Diagram](ER_Diagram.png)
+![Project Flow chart](Flowchart.png)
