@@ -1,0 +1,73 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}KingPhisher{% endblock title %}</title>
+    <link rel="icon" href="{% static 'images/KingPhish.png' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- ── Navbar ── -->
+    <nav>
+        <a class="nav-brand" href="{% url 'dashboard:dash_home' %}">
+            <img src="{% static 'images/KingPhish.png' %}" alt="KingPhish logo">
+            <span>KingPhisher</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="{% url 'spammer:spam_home' %}"  class="{% if request.resolver_match.url_name == 'spam_home' %}active{% endif %}">Spammer</a></li>
+            <li><a href="{% url 'targeter:targ_home' %}" class="{% if request.resolver_match.url_name == 'targ_home' %}active{% endif %}">Targeting</a></li>
+        </ul>
+    </nav>
+
+    {% block content %}{% endblock %}
+
+    <footer>
+        &copy; {{ now|date:"Y" }} KingPhisher &mdash; authorised use only
+    </footer>
+
+    <!-- ── Decorative seaweed ── -->
+    <div class="seaweed">
+        <img src="{% static 'images/seaweed4.gif' %}">
+        <img src="{% static 'images/seaweed2.gif' %}" style="flex:0.8">
+        <img src="{% static 'images/seaweed3.gif' %}">
+        <img src="{% static 'images/seaweed1.gif' %}">
+        <img src="{% static 'images/seaweed1.gif' %}" style="flex:0.8">
+        <img src="{% static 'images/seaweed2.gif' %}">
+        <img src="{% static 'images/seaweed3.gif' %}" style="flex:0.8">
+        <img src="{% static 'images/seaweed2.gif' %}">
+        <img src="{% static 'images/seaweed1.gif' %}">
+        <img src="{% static 'images/seaweed4.gif' %}" style="flex:0.8">
+        <img src="{% static 'images/seaweed2.gif' %}">
+        <img src="{% static 'images/seaweed1.gif' %}">
+        <img src="{% static 'images/seaweed4.gif' %}" style="flex:0.8">
+        <img src="{% static 'images/seaweed3.gif' %}">
+        <img src="{% static 'images/seaweed2.gif' %}" style="flex:0.8">
+    </div>
+
+    <!-- ── Glowy floaters ── -->
+    <img class="glow" src="{% static 'images/glowy floater2.gif' %}" style="top:5%;left:8%;opacity:0.15;width:37px;">
+    <img class="glow" src="{% static 'images/glowy floater3.gif' %}" style="top:12%;right:6%;opacity:0.4;width:30px;">
+    <img class="glow" src="{% static 'images/glowy floater2.gif' %}" style="top:28%;left:55%;opacity:0.25;width:40px;">
+    <img class="glow" src="{% static 'images/glowy floater4.gif' %}" style="top:40%;left:5%;opacity:0.5;width:33px;">
+    <img class="glow" src="{% static 'images/glowy floater2.gif' %}" style="top:55%;right:10%;opacity:0.2;width:38px;">
+    <img class="glow" src="{% static 'images/glowy floater3.gif' %}" style="top:65%;left:30%;opacity:0.35;width:35px;">
+    <img class="glow" src="{% static 'images/glowy floater2.gif' %}" style="top:75%;left:70%;opacity:0.1;width:39px;">
+    <img class="glow" src="{% static 'images/glowy floater4.gif' %}" style="top:85%;left:15%;opacity:0.45;width:31px;">
+    <img class="glow" src="{% static 'images/glowy floater4.gif' %}" style="top:20%;left:20%;opacity:0.3;width:36px;">
+    <img class="glow" src="{% static 'images/glowy floater3.gif' %}" style="top:50%;left:45%;opacity:0.18;width:34px;">
+    <img class="glow" src="{% static 'images/glowy floater1.gif' %}" style="top:33%;right:28%;opacity:0.3;width:36px;">
+    <img class="glow" src="{% static 'images/glowy floater2.gif' %}" style="top:70%;left:82%;opacity:0.22;width:31px;">
+    <img class="glow" src="{% static 'images/glowy floater3.gif' %}" style="top:90%;left:60%;opacity:0.38;width:38px;">
+    <img class="glow" src="{% static 'images/glowy floater2.gif' %}" style="top:16%;left:42%;opacity:0.28;width:33px;">
+    <img class="glow" src="{% static 'images/glowy floater1.gif' %}" style="top:58%;left:65%;opacity:0.2;width:40px;">
+    <img class="glow" src="{% static 'images/glowy floater3.gif' %}" style="top:80%;right:22%;opacity:0.42;width:35px;">
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

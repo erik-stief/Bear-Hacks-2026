@@ -1,0 +1,69 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard — KingPhisher{% endblock %}
+
+{% block content %}
+
+    <!-- ── Hero ── -->
+    <div class="hero">
+        <div class="hero-text">
+            <h1>Dashboard</h1>
+            <p>Campaign overview &amp; activity log</p>
+        </div>
+    </div>
+
+    <!-- ── Main ── -->
+    <main>
+        <div class="section-header">
+            <h2>Email Analysis Results</h2>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Subject</th>
+                        <th>Sender</th>
+                        <th>Reply-To</th>
+                        <th>SPF</th>
+                        <th>DKIM</th>
+                        <th>DMARC</th>
+                        <th>Risk</th>
+                        <th>Analyzed</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if records %}
+                        {% for record in records %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ record.subject|truncatechars:60 }}</td>
+                            <td>{{ record.sender_email }}</td>
+                            <td>{{ record.reply_to_email|default:"—" }}</td>
+                            <td>{{ record.spf|default:"—" }}</td>
+                            <td>{{ record.dkim|default:"—" }}</td>
+                            <td>{{ record.dmarc|default:"—" }}</td>
+                            <td>
+                                <span class="badge badge-{{ record.risk_level }}">{{ record.risk_level }}</span>
+                            </td>
+                            <td>{{ record.analyzed_at|date:"d M Y H:i" }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="9">
+                                <div class="table-empty">
+                                    <img src="{% static 'images/Bubbles Throbber.gif' %}" alt="Loading">
+                                    <p>No analysis results yet — install the extension and scan some emails.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard — KingPhisher{% endblock %}
+
+{% block content %}
+
+    <!-- ── Hero ── -->
+    <div class="hero">
+        <div class="hero-text">
+            <h1>Spammer</h1>
+            <p>Campaign overview &amp; activity log</p>
+        </div>
+    </div>
+
+    <!-- ── Main ── -->
+    <main>
+        <div class="section-header">
+            <h2>Campaign Records</h2>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Email</th>
+                        <th>IP</th>
+                        <th>Domain</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if records %}
+                        {% for record in records %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ record.target_name }}</td>
+                            <td>{{ record.email }}</td>
+                            <td>{{ record.campaign }}</td>
+                            <td>{{ record.sent_at|date:"d M Y H:i" }}</td>
+                            <td>
+                                <span class="badge badge-{{ record.status }}">{{ record.status }}</span>
+                            </td>
+                            <td>{{ record.opened|yesno:"Yes,No" }}</td>
+                            <td>{{ record.clicked|yesno:"Yes,No" }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="8">
+                                <div class="table-empty">
+                                    <img src="{% static 'images/Bubbles Throbber.gif' %}" alt="Loading">
+                                    <p>No records yet — data will appear here once campaigns are running.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+{% endblock %}
