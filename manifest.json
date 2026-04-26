@@ -1,0 +1,51 @@
+{
+    "manifest_version": 3,
+    "name": "Catch-n-Release",
+    "version": "1.0",
+    "description": "A Chrome extension to detect possible phishing attempts in a User's Gmail inbox and forward them to a external dashboard for analysis and revenge.",
+    "permissions": [
+        "identity",
+        "storage",
+        "scripting"
+    ],
+    "host_permissions": [
+        "https://gmail.googleapis.com/*",
+        "https://mail.google.com/*",
+        "https://*/"
+    ],
+    "oauth2": {
+        "client_id": "252052006174-67koofm5isl72tc71g44ardsfvbegu5i.apps.googleusercontent.com",
+        "scopes": [
+            "https://www.googleapis.com/auth/gmail.readonly"
+        ]
+    },
+    "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'"
+    },
+    "background": {
+        "service_worker": "background.js"
+    },
+    "action": {
+        "default_popup": "popup.html",
+        "default_icon": {
+            "1": "KingPhish.png"
+        }
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "https://mail.google.com/*"
+            ],
+            "js": [
+                "config.js",
+                "gmail.js"
+            ],
+            "run_at": "document_idle"
+        }
+    ],
+    "icons": {
+        "16": "KingPhish.png",
+        "48": "KingPhish.png",
+        "128": "KingPhish.png"
+    }
+}
