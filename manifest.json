@@ -28,7 +28,7 @@
     "action": {
         "default_popup": "popup.html",
         "default_icon": {
-            "1": "KingPhish.png"
+            "1": "assets/images/KingPhish.png"
         }
     },
     "content_scripts": [
@@ -44,8 +44,8 @@
         }
     ],
     "icons": {
-        "16": "KingPhish.png",
-        "48": "KingPhish.png",
-        "128": "KingPhish.png"
+        "16": "assets/images/KingPhish.png",
+        "48": "assets/images/KingPhish.png",
+        "128": "assets/images/KingPhish.png"
     }
 }
