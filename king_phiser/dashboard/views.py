@@ -1,6 +1,8 @@
 from django.shortcuts import render
-from django.http import HttpResponse
-from django.shortcuts import redirect, render
+
+from analyzer.models import AnalysisResult
+
 
 def dash_home(request):
-    return render(request, 'dashboard/index.html')
+    records = AnalysisResult.objects.all()[:50]
+    return render(request, 'dashboard/index.html', {"records": records})

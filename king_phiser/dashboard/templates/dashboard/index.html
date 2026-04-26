@@ -16,7 +16,7 @@
     <!-- ── Main ── -->
     <main>
         <div class="section-header">
-            <h2>Campaign Records</h2>
+            <h2>Email Analysis Results</h2>
         </div>
 
         <div class="table-wrapper">
@@ -24,9 +24,14 @@
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>Email</th>
-                        <th>IP</th>
-                        <th>Domain</th>
+                        <th>Subject</th>
+                        <th>Sender</th>
+                        <th>Reply-To</th>
+                        <th>SPF</th>
+                        <th>DKIM</th>
+                        <th>DMARC</th>
+                        <th>Risk</th>
+                        <th>Analyzed</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -34,23 +39,24 @@
                         {% for record in records %}
                         <tr>
                             <td>{{ forloop.counter }}</td>
-                            <td>{{ record.target_name }}</td>
-                            <td>{{ record.email }}</td>
-                            <td>{{ record.campaign }}</td>
-                            <td>{{ record.sent_at|date:"d M Y H:i" }}</td>
+                            <td>{{ record.subject|truncatechars:60 }}</td>
+                            <td>{{ record.sender_email }}</td>
+                            <td>{{ record.reply_to_email|default:"—" }}</td>
+                            <td>{{ record.spf|default:"—" }}</td>
+                            <td>{{ record.dkim|default:"—" }}</td>
+                            <td>{{ record.dmarc|default:"—" }}</td>
                             <td>
-                                <span class="badge badge-{{ record.status }}">{{ record.status }}</span>
+                                <span class="badge badge-{{ record.risk_level }}">{{ record.risk_level }}</span>
                             </td>
-                            <td>{{ record.opened|yesno:"Yes,No" }}</td>
-                            <td>{{ record.clicked|yesno:"Yes,No" }}</td>
+                            <td>{{ record.analyzed_at|date:"d M Y H:i" }}</td>
                         </tr>
                         {% endfor %}
                     {% else %}
                         <tr>
-                            <td colspan="8">
+                            <td colspan="9">
                                 <div class="table-empty">
                                     <img src="{% static 'images/Bubbles Throbber.gif' %}" alt="Loading">
-                                    <p>No records yet — data will appear here once campaigns are running.</p>
+                                    <p>No analysis results yet — install the extension and scan some emails.</p>
                                 </div>
                             </td>
                         </tr>
