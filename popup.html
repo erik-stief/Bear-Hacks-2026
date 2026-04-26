@@ -1,0 +1,72 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="KingPhish.png">
+    <title>Catch-n-Release</title>
+    <link rel="stylesheet" href="popup.css" />
+</head>
+
+<body>
+    <!-- Div for the "Splash-Screen" before the main pop-up page opens: -->
+    <div id="splash-screen">
+        <img id="splash-logo" src="KingPhish.png">
+        <img src="Bubbles_Throbber.gif">
+    </div>
+
+    <!-- Div for the wrapping / container of the whole extension UI: -->
+    <div class="wrapping">
+        <!-- Div for the App logo: -->
+        <div class="app-logo">
+            <img src="KingPhish.png">
+        </div>
+
+        <!-- Div for the App title: -->
+        <div class="header">
+            <h5>Catch-n-Release</h5>
+        </div>
+
+        <br>
+
+        <!-- Div for the description of what the extension does: -->
+        <div class="app-desc">
+            <p>This browser extension does stuff for phishing detection and giving the scammers a taste of what they are dishing out.</p>
+        </div>
+
+        <br>
+
+        <div class="row">
+            <button id="login">Connect Gmail</button>
+            <button id="refresh">Refresh</button>
+        </div>
+
+        <!-- Div for the list of messages scanned and analyzed: -->
+        <ul id="list"></ul>
+
+    </div>
+    <div class="seaweed">
+            <img src="seaweed.gif">
+            <img src="seaweed.gif">
+            <img src="seaweed.gif">
+    </div>
+    <img class="glow" src="glowy_floater2.gif" style="top:5%;left:8%;opacity:0.15;width:37px;">
+    <img class="glow" src="glowy_floater3.gif" style="top:12%;right:6%;opacity:0.4;width:30px;">
+    <img class="glow" src="glowy_floater2.gif" style="top:28%;left:55%;opacity:0.25;width:40px;">
+    <img class="glow" src="glowy_floater4.gif" style="top:40%;left:5%;opacity:0.5;width:33px;">
+    <img class="glow" src="glowy_floater2.gif" style="top:55%;right:10%;opacity:0.2;width:38px;">
+    <img class="glow" src="glowy_floater3.gif" style="top:65%;left:30%;opacity:0.35;width:35px;">
+    <img class="glow" src="glowy_floater2.gif" style="top:75%;left:70%;opacity:0.1;width:39px;">
+    <img class="glow" src="glowy_floater4.gif" style="top:85%;left:15%;opacity:0.45;width:31px;">
+    <img class="glow" src="glowy_floater4.gif" style="top:20%;left:20%;opacity:0.3;width:36px;">
+    <img class="glow" src="glowy_floater3.gif" style="top:50%;left:45%;opacity:0.18;width:34px;">
+
+    <script src="popup-splash.js"></script>
+    <script src="config.js"></script>
+    <script src="gmail.js"></script>
+    <script src="detector.js"></script>
+    <script type="module" src="popup.js"></script>
+
+</body>
+
+</html>
