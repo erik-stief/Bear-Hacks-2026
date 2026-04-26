@@ -149,4 +149,4 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'kingphisher194@gmail.com' # Your email address
-EMAIL_HOST_PASSWORD = 'wnnusnzazaeodgwu' # Your App Password, NOT your standard password
+EMAIL_HOST_PASSWORD = 'czdwgexhimmxotbz' # Your App Password, NOT your standard password
