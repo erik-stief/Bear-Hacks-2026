@@ -8,6 +8,7 @@ from django.views.decorators.http import require_POST
 from analyzer.models import AnalysisResult
 
 
+@login_required
 def spam_home(request):
     targets = AnalysisResult.objects.filter(
         risk_level__in=["phishing", "suspicious"]
@@ -23,14 +24,17 @@ def spam_sender_view(request, result_id):
 
     def email_stream():
         for i in range(1, 101):
-            send_mail(
-                subject="Get King Phished!",
-                message="This is a counter-attack from King Phisher.",
-                from_email=settings.EMAIL_HOST_USER,
-                recipient_list=[target_email],
-                fail_silently=True,
-            )
-            yield f"[{i:03d}/100] Sending to {target_email}... ✓\n"
+            try:
+                send_mail(
+                    subject="Get King Phished!",
+                    message="This is a counter-attack from King Phisher.",
+                    from_email=settings.EMAIL_HOST_USER,
+                    recipient_list=[target_email],
+                    fail_silently=False,
+                )
+                yield f"[{i:03d}/100] Sending to {target_email}... ✓\n"
+            except Exception:
+                yield f"[{i:03d}/100] Sending to {target_email}... ✗ (failed)\n"
         yield "═══ ATTACK COMPLETE — 100 emails delivered. ═══\n"
 
     return StreamingHttpResponse(email_stream(), content_type="text/plain")
