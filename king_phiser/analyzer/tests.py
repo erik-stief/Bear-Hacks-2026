@@ -119,3 +119,29 @@ class AnalyzeFlaggedViewTest(TestCase):
     def test_analyze_404_on_missing_flag(self):
         response = self.client.post("/api/flagged/9999/analyze/")
         self.assertEqual(response.status_code, 404)
+
+
+class AnalyzeHeadersSafeSkipTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="tester3", password="pass")
+        self.token = APIToken.objects.create(user=self.user, label="test")
+
+    def _auth(self):
+        return {"HTTP_AUTHORIZATION": f"Token {self.token.key}"}
+
+    def test_safe_result_not_saved(self):
+        # Headers with all passing auth — should score as safe
+        safe_headers = (
+            "From: legit@google.com\r\n"
+            "Subject: Hello\r\n"
+            "Authentication-Results: mx.google.com; spf=pass; dkim=pass; dmarc=pass"
+        )
+        response = self.client.post(
+            "/analyzer/analyze/",
+            data=json.dumps({"raw_headers": safe_headers}),
+            content_type="application/json",
+            **self._auth(),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["risk_level"], "safe")
+        self.assertEqual(AnalysisResult.objects.count(), 0)

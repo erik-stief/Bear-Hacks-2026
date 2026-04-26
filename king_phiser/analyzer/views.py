@@ -67,19 +67,20 @@ def analyze_headers_view(request):
     auth_results = analysis.get("authentication_results", [{}])
     first_auth = auth_results[0] if auth_results else {}
 
-    AnalysisResult.objects.create(
-        token=token,
-        subject=analysis.get("subject", ""),
-        sender_email=analysis.get("from", {}).get("email", ""),
-        sender_domain=analysis.get("from", {}).get("domain", ""),
-        reply_to_email=analysis.get("reply_to", {}).get("email", ""),
-        spf=first_auth.get("spf") or "",
-        dkim=first_auth.get("dkim") or "",
-        dmarc=first_auth.get("dmarc") or "",
-        provider=analysis.get("provider_hint", ""),
-        risk_level=risk,
-        raw_analysis=analysis,
-    )
+    if risk != "safe":
+        AnalysisResult.objects.create(
+            token=token,
+            subject=analysis.get("subject", ""),
+            sender_email=analysis.get("from", {}).get("email", ""),
+            sender_domain=analysis.get("from", {}).get("domain", ""),
+            reply_to_email=analysis.get("reply_to", {}).get("email", ""),
+            spf=first_auth.get("spf") or "",
+            dkim=first_auth.get("dkim") or "",
+            dmarc=first_auth.get("dmarc") or "",
+            provider=analysis.get("provider_hint", ""),
+            risk_level=risk,
+            raw_analysis=analysis,
+        )
 
     return JsonResponse(
         {
