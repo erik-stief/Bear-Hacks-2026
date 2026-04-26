@@ -5,20 +5,74 @@
 
 {% block content %}
 
-    <!-- ── Hero ── -->
-    <div class="hero">
-        <div class="hero-text">
-            <h1>Dashboard</h1>
-            <p>Collection of flagged phishing emails</p>
+<div class="hero">
+    <div class="hero-text">
+        <h1>Dashboard</h1>
+        <p>Review and analyze flagged phishing emails</p>
+    </div>
+</div>
+
+<main>
+    <div class="tab-strip">
+        <button class="tab-btn active" data-tab="pending">
+            Pending Review
+            {% if flagged %}<span class="tab-count">{{ flagged|length }}</span>{% endif %}
+        </button>
+        <button class="tab-btn" data-tab="results">Analysis Results</button>
+    </div>
+
+    <!-- ── Tab: Pending Review ── -->
+    <div id="tab-pending" class="tab-panel active">
+        <div class="section-header">
+            <h2>Pending Review</h2>
+        </div>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Subject</th>
+                        <th>Sender</th>
+                        <th>Local Risk</th>
+                        <th>Flagged At</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="pending-tbody">
+                    {% if flagged %}
+                        {% for email in flagged %}
+                        <tr id="flag-row-{{ email.id }}">
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ email.subject|truncatechars:60 }}</td>
+                            <td>{{ email.sender_email }}</td>
+                            <td><span class="badge badge-{{ email.local_risk_label }}">{{ email.local_risk_label }}</span></td>
+                            <td>{{ email.flagged_at|date:"d M Y H:i" }}</td>
+                            <td class="action-cell">
+                                <button class="btn-analyze" data-id="{{ email.id }}">Send for Analysis</button>
+                                <button class="btn-dismiss" data-id="{{ email.id }}">Dismiss</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr id="pending-empty">
+                            <td colspan="6">
+                                <div class="table-empty">
+                                    <img src="{% static 'images/Bubbles Throbber.gif' %}" alt="Loading">
+                                    <p>No pending emails — the extension will flag mid/high risk emails here.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <!-- ── Main ── -->
-    <main>
+    <!-- ── Tab: Analysis Results ── -->
+    <div id="tab-results" class="tab-panel">
         <div class="section-header">
-            <h2>Phishing Emails</h2>
+            <h2>Analysis Results</h2>
         </div>
-
         <div class="table-wrapper">
             <table>
                 <thead>
@@ -45,9 +99,7 @@
                             <td>{{ record.spf|default:"—" }}</td>
                             <td>{{ record.dkim|default:"—" }}</td>
                             <td>{{ record.dmarc|default:"—" }}</td>
-                            <td>
-                                <span class="badge badge-{{ record.risk_level }}">{{ record.risk_level }}</span>
-                            </td>
+                            <td><span class="badge badge-{{ record.risk_level }}">{{ record.risk_level }}</span></td>
                             <td>{{ record.analyzed_at|date:"d M Y H:i" }}</td>
                         </tr>
                         {% endfor %}
@@ -55,8 +107,8 @@
                         <tr>
                             <td colspan="9">
                                 <div class="table-empty">
-                                    <img src="{% static 'images/Bubbles_Throbber.gif' %}" alt="Loading">
-                                    <p>No analysis results yet — install the extension and scan some emails.</p>
+                                    <img src="{% static 'images/Bubbles Throbber.gif' %}" alt="Loading">
+                                    <p>No analysis results yet — review and submit emails from the Pending tab.</p>
                                 </div>
                             </td>
                         </tr>
@@ -64,6 +116,76 @@
                 </tbody>
             </table>
         </div>
-    </main>
+    </div>
+</main>
+
+<script>
+(function () {
+    // Tab switching
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+        });
+    });
+
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+    function removeRow(id) {
+        const row = document.getElementById('flag-row-' + id);
+        if (row) row.remove();
+        if (!document.querySelector('#pending-tbody tr[id^="flag-row-"]')) {
+            const tbody = document.getElementById('pending-tbody');
+            tbody.innerHTML = '<tr id="pending-empty"><td colspan="6"><div class="table-empty"><p>No pending emails.</p></div></td></tr>';
+        }
+    }
+
+    // Analyze buttons
+    document.querySelectorAll('.btn-analyze').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const id = btn.dataset.id;
+            btn.disabled = true;
+            btn.textContent = 'Analyzing...';
+            try {
+                const res = await fetch(`/api/flagged/${id}/analyze/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                });
+                if (!res.ok) throw new Error('Server error');
+                removeRow(id);
+            } catch (e) {
+                btn.disabled = false;
+                btn.textContent = 'Send for Analysis';
+                alert('Analysis failed. Please try again.');
+            }
+        });
+    });
+
+    // Dismiss buttons
+    document.querySelectorAll('.btn-dismiss').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const id = btn.dataset.id;
+            btn.disabled = true;
+            try {
+                const res = await fetch(`/api/flagged/${id}/dismiss/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                });
+                if (!res.ok) throw new Error('Server error');
+                removeRow(id);
+            } catch (e) {
+                btn.disabled = false;
+                alert('Dismiss failed. Please try again.');
+            }
+        });
+    });
+})();
+</script>
 
 {% endblock %}
