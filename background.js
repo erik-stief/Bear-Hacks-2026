@@ -58,7 +58,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       },
       body: JSON.stringify({ raw_headers: rawHeaderString })
     })
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    })
     .then(data => {
       console.log("[Secondary Scan] Django response:", data);
       sendResponse({ ok: true, risk_level: data.risk_level });
