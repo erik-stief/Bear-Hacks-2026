@@ -3,8 +3,7 @@
 
 {% block title %}Spammer — KingPhisher{% endblock %}
 
-{% block content %}
-
+{% block extra_css %}
 <style>
   .btn-attack {
     font-family: 'HomeVideo', sans-serif;
@@ -59,7 +58,7 @@
     flex: 1;
     overflow-y: auto;
     padding: 1rem;
-    scroll-behavior: smooth;
+    scroll-behavior: auto;
   }
 
   #terminal-output {
@@ -92,6 +91,9 @@
   }
   #btn-close-terminal:hover { background: rgba(0, 255, 65, 0.12); }
 </style>
+{% endblock %}
+
+{% block content %}
 
 <!-- ── Hero ── -->
 <div class="hero">
@@ -263,10 +265,10 @@
       }
     } catch (err) {
       termOutput.textContent += `\nERROR: ${err.message}\n`;
+    } finally {
+      btnClose.classList.remove('hidden');
+      if (btn) btn.disabled = false;
     }
-
-    btnClose.classList.remove('hidden');
-    if (btn) btn.disabled = false;
   });
 
   btnClose.addEventListener('click', () => {
