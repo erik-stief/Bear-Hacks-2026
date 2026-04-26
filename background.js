@@ -44,33 +44,30 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
 
   if (msg.type === "PT_COLLECT_HEADERS") {
-    const forensicEntry = {
-      scanTime: new Date().toISOString(),
-      messageId: msg.id,
-      headers: msg.headers
-    };
+    const rawHeaderString = (msg.headers || [])
+      .map(h => `${h.name}: ${h.value}`)
+      .join("\r\n");
 
-    // 1. Print JSON to Service Worker Console
-    console.log("[Secondary Scan] Forensic JSON Payload:", forensicEntry);
+    console.log("[Secondary Scan] Sending headers for message:", msg.id);
 
-    // 2. Send to Django Webapp via POST
-    const DJANGO_ENDPOINT = "<ERIK'S DJANGO ENGPOINT HERE>"; // Replace with actual endpoint
-
-    fetch(DJANGO_ENDPOINT, {
+    fetch(self.PT_CONFIG.DJANGO_ENDPOINT, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(forensicEntry)
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Token ${self.PT_CONFIG.API_TOKEN}`
+      },
+      body: JSON.stringify({ raw_headers: rawHeaderString })
     })
     .then(response => response.json())
     .then(data => {
-      console.log("Sent to Django:", data);
-      sendResponse({ ok: true });
+      console.log("[Secondary Scan] Django response:", data);
+      sendResponse({ ok: true, risk_level: data.risk_level });
     })
     .catch(error => {
-      console.error("Django POST failed:", error);
+      console.error("[Secondary Scan] Django POST failed:", error);
       sendResponse({ ok: false, error: error.message });
     });
 
-    return true; 
+    return true;
   }
 });
