@@ -33,8 +33,8 @@ def spam_sender_view(request, result_id):
                     fail_silently=False,
                 )
                 yield f"[{i:03d}/100] Sending to {target_email}... ✓\n"
-            except Exception:
-                yield f"[{i:03d}/100] Sending to {target_email}... ✗ (failed)\n"
+            except Exception as e:
+                yield f"[{i:03d}/100] Sending to {target_email}... ✗ ({type(e).__name__})\n"
         yield "═══ ATTACK COMPLETE — 100 emails delivered. ═══\n"
 
     return StreamingHttpResponse(email_stream(), content_type="text/plain")
