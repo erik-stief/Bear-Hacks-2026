@@ -46,3 +46,20 @@ class AnalysisResult(models.Model):
 
     def __str__(self):
         return f"[{self.risk_level}] {self.subject[:60]} ({self.analyzed_at:%Y-%m-%d %H:%M})"
+
+
+class FlaggedEmail(models.Model):
+    RISK_LABEL_CHOICES = [("mid", "Mid"), ("high", "High")]
+
+    gmail_message_id = models.CharField(max_length=64, unique=True)
+    subject = models.TextField(blank=True)
+    sender_email = models.CharField(max_length=255, blank=True)
+    local_risk_label = models.CharField(max_length=10, choices=RISK_LABEL_CHOICES)
+    raw_headers = models.TextField()
+    flagged_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-flagged_at"]
+
+    def __str__(self):
+        return f"[{self.local_risk_label}] {self.subject[:60]}"
