@@ -16,5 +16,7 @@ self.PT_CONFIG = {
     LINK_EXTRACTOR: /<a\s+(?:[^>]*?\s+)?href="([^"]*)"/gi
   },
   ENABLE_CONSOLE_LOGGING: true,
-  AUTO_SCAN_ON_OPEN: true
+  AUTO_SCAN_ON_OPEN: true,
+  DJANGO_ENDPOINT: "http://localhost:8000/analyzer/analyze/",
+  API_TOKEN: "REPLACE_WITH_TOKEN_FROM_DJANGO_ADMIN"
 };
