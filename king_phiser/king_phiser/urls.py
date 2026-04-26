@@ -22,6 +22,7 @@ urlpatterns = [
     path("accounts/", include("django.contrib.auth.urls")),
     path('dashboard/', include("dashboard.urls")),
     path('analyzer/', include('analyzer.urls')),
+    path('api/', include('analyzer.urls')),
     path('dashboard/spammer/', include("spammer.urls")),
     path('dashboard/targeter/', include("targeter.urls")),
 ]

@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from .models import APIToken, AnalysisResult
+from .models import APIToken, AnalysisResult, FlaggedEmail
 from .services.header_analyzer import analyze_headers
 
 
@@ -88,3 +88,39 @@ def analyze_headers_view(request):
         },
         status=200,
     )
+
+
+@csrf_exempt
+@require_POST
+def flag_email_view(request):
+    token = _authenticate_token(request)
+    if token is None:
+        return JsonResponse({"error": "Unauthorized"}, status=401)
+
+    try:
+        payload = json.loads(request.body.decode("utf-8"))
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON body"}, status=400)
+
+    gmail_message_id = payload.get("gmail_message_id", "").strip()
+    if not gmail_message_id:
+        return JsonResponse({"error": "gmail_message_id is required"}, status=400)
+
+    _, created = FlaggedEmail.objects.get_or_create(
+        gmail_message_id=gmail_message_id,
+        defaults={
+            "subject": payload.get("subject", ""),
+            "sender_email": payload.get("sender_email", ""),
+            "local_risk_label": payload.get("local_risk_label", "mid"),
+            "raw_headers": payload.get("raw_headers", ""),
+        },
+    )
+    return JsonResponse({"status": "created" if created else "exists"})
+
+
+def analyze_flagged_view(request, flag_id):
+    return JsonResponse({"status": "not implemented"}, status=501)
+
+
+def dismiss_flagged_view(request, flag_id):
+    return JsonResponse({"status": "not implemented"}, status=501)

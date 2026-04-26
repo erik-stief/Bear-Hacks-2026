@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.shortcuts import redirect
 
-EXEMPT_PREFIXES = ("/accounts/", "/admin/", "/analyzer/")
+EXEMPT_PREFIXES = ("/accounts/", "/admin/", "/analyzer/", "/api/")
 
 
 class LoginRequiredMiddleware:
