@@ -1,0 +1,280 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Spammer — KingPhisher{% endblock %}
+
+{% block extra_css %}
+<style>
+  .btn-attack {
+    font-family: 'HomeVideo', sans-serif;
+    font-size: 0.7rem;
+    padding: 0.35rem 0.75rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+    background: #8b1a1a;
+    color: #fff;
+  }
+  .btn-attack:hover:not(:disabled) { background: #b22222; }
+  .btn-attack:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ── Terminal overlay ── */
+  #terminal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #terminal-overlay.hidden { display: none; }
+
+  #terminal-box {
+    background: #0a0a0a;
+    border: 2px solid #00ff41;
+    border-radius: 8px;
+    width: min(700px, 92vw);
+    max-height: 70vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 40px rgba(0, 255, 65, 0.25);
+    overflow: hidden;
+  }
+
+  #terminal-header {
+    background: #111;
+    border-bottom: 1px solid #00ff41;
+    padding: 0.6rem 1rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    color: #00ff41;
+    letter-spacing: 1px;
+    flex-shrink: 0;
+  }
+
+  #terminal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    scroll-behavior: auto;
+  }
+
+  #terminal-output {
+    font-family: 'Courier New', monospace;
+    font-size: 0.82rem;
+    color: #00ff41;
+    white-space: pre-wrap;
+    word-break: break-all;
+    line-height: 1.6;
+  }
+
+  #terminal-footer {
+    border-top: 1px solid #00ff41;
+    padding: 0.75rem 1rem;
+    text-align: right;
+    background: #111;
+    flex-shrink: 0;
+  }
+
+  #btn-close-terminal {
+    font-family: 'HomeVideo', sans-serif;
+    font-size: 0.75rem;
+    padding: 0.4rem 1rem;
+    background: transparent;
+    border: 1px solid #00ff41;
+    color: #00ff41;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  #btn-close-terminal:hover { background: rgba(0, 255, 65, 0.12); }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Hero ── -->
+<div class="hero">
+  <div class="hero-text">
+    <h1>Spammer</h1>
+    <p>Counter-attack phishing senders — all actions require manual approval</p>
+  </div>
+</div>
+
+<!-- ── Main ── -->
+<main>
+  <div class="section-header">
+    <h2>Phishing &amp; Suspicious Targets</h2>
+  </div>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Subject</th>
+          <th>Sender Email</th>
+          <th>Domain</th>
+          <th>Risk</th>
+          <th>Analyzed</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="targets-tbody">
+        {% if targets %}
+          {% for target in targets %}
+          <tr id="target-row-{{ target.id }}">
+            <td>{{ forloop.counter }}</td>
+            <td>{{ target.subject|truncatechars:55 }}</td>
+            <td>{{ target.sender_email }}</td>
+            <td>{{ target.sender_domain }}</td>
+            <td><span class="badge badge-{{ target.risk_level }}">{{ target.risk_level }}</span></td>
+            <td>{{ target.analyzed_at|date:"d M Y H:i" }}</td>
+            <td class="action-cell">
+              <button class="btn-attack"
+                      data-id="{{ target.id }}"
+                      data-email="{{ target.sender_email }}">
+                Launch Attack
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="7">
+              <div class="table-empty">
+                <p>No targets yet — analyze flagged emails on the Dashboard first.</p>
+              </div>
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<!-- ── Confirm modal ── -->
+<div id="confirm-modal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <p id="confirm-msg">You are about to send 100 emails to this address. This cannot be undone.</p>
+    <div class="modal-actions">
+      <button id="modal-confirm" class="btn-modal-confirm">Confirm Attack</button>
+      <button id="modal-cancel" class="btn-modal-cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Hacker terminal overlay ── -->
+<div id="terminal-overlay" class="hidden">
+  <div id="terminal-box">
+    <div id="terminal-header">KING PHISHER — COUNTER-ATTACK INITIATED</div>
+    <div id="terminal-body">
+      <pre id="terminal-output"></pre>
+    </div>
+    <div id="terminal-footer">
+      <button id="btn-close-terminal" class="hidden">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+  }
+
+  const confirmModal = document.getElementById('confirm-modal');
+  const confirmMsg   = document.getElementById('confirm-msg');
+  const modalConfirm = document.getElementById('modal-confirm');
+  const modalCancel  = document.getElementById('modal-cancel');
+  const termOverlay  = document.getElementById('terminal-overlay');
+  const termOutput   = document.getElementById('terminal-output');
+  const termBody     = document.getElementById('terminal-body');
+  const btnClose     = document.getElementById('btn-close-terminal');
+
+  let pendingResultId  = null;
+  let pendingAttackBtn = null;
+
+  // Open confirm modal on "Launch Attack"
+  document.querySelectorAll('.btn-attack').forEach(btn => {
+    btn.addEventListener('click', () => {
+      pendingResultId  = btn.dataset.id;
+      pendingAttackBtn = btn;
+      confirmMsg.textContent =
+        `You are about to send 100 emails to ${btn.dataset.email}. This cannot be undone.`;
+      confirmModal.classList.remove('hidden');
+    });
+  });
+
+  modalCancel.addEventListener('click', () => {
+    confirmModal.classList.add('hidden');
+    pendingResultId  = null;
+    pendingAttackBtn = null;
+  });
+
+  confirmModal.addEventListener('click', e => {
+    if (e.target === confirmModal) {
+      confirmModal.classList.add('hidden');
+      pendingResultId  = null;
+      pendingAttackBtn = null;
+    }
+  });
+
+  modalConfirm.addEventListener('click', async () => {
+    if (!pendingResultId) return;
+
+    const id  = pendingResultId;
+    const btn = pendingAttackBtn;
+    confirmModal.classList.add('hidden');
+    pendingResultId  = null;
+    pendingAttackBtn = null;
+
+    // Disable the attack button while running
+    if (btn) btn.disabled = true;
+
+    // Clear terminal and show overlay
+    termOutput.textContent = '';
+    btnClose.classList.add('hidden');
+    termOverlay.classList.remove('hidden');
+
+    try {
+      const res = await fetch(`/dashboard/spammer/send/${id}/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCookie('csrftoken') },
+      });
+
+      if (!res.ok || !res.body) {
+        termOutput.textContent += `\nERROR: Server returned ${res.status}\n`;
+        btnClose.classList.remove('hidden');
+        if (btn) btn.disabled = false;
+        return;
+      }
+
+      const reader  = res.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        termOutput.textContent += decoder.decode(value, { stream: true });
+        termBody.scrollTop = termBody.scrollHeight;
+      }
+    } catch (err) {
+      termOutput.textContent += `\nERROR: ${err.message}\n`;
+    } finally {
+      btnClose.classList.remove('hidden');
+      if (btn) btn.disabled = false;
+    }
+  });
+
+  btnClose.addEventListener('click', () => {
+    termOverlay.classList.add('hidden');
+  });
+})();
+</script>
+
+{% endblock %}

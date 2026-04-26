@@ -1,0 +1,172 @@
+import json
+
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+
+from .models import APIToken, AnalysisResult, FlaggedEmail
+from .services.header_analyzer import analyze_headers
+
+
+def _authenticate_token(request):
+    auth_header = request.META.get("HTTP_AUTHORIZATION", "")
+    if auth_header.startswith("Token "):
+        key = auth_header[6:].strip()
+        try:
+            return APIToken.objects.select_related("user").get(key=key)
+        except APIToken.DoesNotExist:
+            pass
+    return None
+
+
+def _compute_risk(analysis: dict, local_risk_label: str = "") -> str:
+    auth_results = analysis.get("authentication_results", [])
+    if not auth_results:
+        return "suspicious"
+
+    first = auth_results[0]
+    spf = first.get("spf") or ""
+    dkim = first.get("dkim") or ""
+    dmarc = first.get("dmarc") or ""
+
+    failures = sum(1 for v in (spf, dkim, dmarc) if v in ("fail", "none", "softfail"))
+
+    sender_domain = analysis.get("from", {}).get("domain", "")
+    reply_to_domain = analysis.get("reply_to", {}).get("domain", "")
+    domain_mismatch = (
+        reply_to_domain and sender_domain and reply_to_domain != sender_domain
+    )
+
+    if failures >= 2 or (failures >= 1 and domain_mismatch):
+        return "phishing"
+    if failures == 1 or domain_mismatch:
+        return "suspicious"
+    # Headers are clean but extension's content scan flagged this as risky
+    if local_risk_label in ("high", "mid"):
+        return "suspicious"
+    return "safe"
+
+
+@csrf_exempt
+@require_POST
+def analyze_headers_view(request):
+    token = _authenticate_token(request)
+    if token is None:
+        return JsonResponse({"error": "Unauthorized"}, status=401)
+
+    try:
+        payload = json.loads(request.body.decode("utf-8"))
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON body"}, status=400)
+
+    raw_headers = payload.get("raw_headers", "").strip()
+    if not raw_headers:
+        return JsonResponse({"error": "raw_headers is required"}, status=400)
+
+    analysis = analyze_headers(raw_headers)
+    risk = _compute_risk(analysis)
+
+    auth_results = analysis.get("authentication_results", [{}])
+    first_auth = auth_results[0] if auth_results else {}
+
+    if risk != "safe":
+        AnalysisResult.objects.create(
+            token=token,
+            subject=analysis.get("subject", ""),
+            sender_email=analysis.get("from", {}).get("email", ""),
+            sender_domain=analysis.get("from", {}).get("domain", ""),
+            reply_to_email=analysis.get("reply_to", {}).get("email", ""),
+            spf=first_auth.get("spf") or "",
+            dkim=first_auth.get("dkim") or "",
+            dmarc=first_auth.get("dmarc") or "",
+            provider=analysis.get("provider_hint", ""),
+            risk_level=risk,
+            raw_analysis=analysis,
+        )
+
+    return JsonResponse(
+        {
+            "status": "ok",
+            "risk_level": risk,
+            "analysis": analysis,
+        },
+        status=200,
+    )
+
+
+@csrf_exempt
+@require_POST
+def flag_email_view(request):
+    token = _authenticate_token(request)
+    if token is None:
+        return JsonResponse({"error": "Unauthorized"}, status=401)
+
+    try:
+        payload = json.loads(request.body.decode("utf-8"))
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON body"}, status=400)
+
+    gmail_message_id = payload.get("gmail_message_id", "").strip()
+    if not gmail_message_id:
+        return JsonResponse({"error": "gmail_message_id is required"}, status=400)
+
+    _, created = FlaggedEmail.objects.get_or_create(
+        gmail_message_id=gmail_message_id,
+        defaults={
+            "subject": payload.get("subject", ""),
+            "sender_email": payload.get("sender_email", ""),
+            "local_risk_label": payload.get("local_risk_label", "mid"),
+            "raw_headers": payload.get("raw_headers", ""),
+        },
+    )
+    return JsonResponse({"status": "created" if created else "exists"})
+
+
+@require_POST
+def analyze_flagged_view(request, flag_id):
+    flag = get_object_or_404(FlaggedEmail, id=flag_id)
+
+    analysis = analyze_headers(flag.raw_headers)
+    risk = _compute_risk(analysis, local_risk_label=flag.local_risk_label)
+
+    auth_results = analysis.get("authentication_results", [{}])
+    first_auth = auth_results[0] if auth_results else {}
+
+    saved = False
+    if risk != "safe":
+        token = APIToken.objects.filter(user=request.user).first()
+        _, created = AnalysisResult.objects.get_or_create(
+            gmail_message_id=flag.gmail_message_id,
+            defaults={
+                "token": token,
+                "subject": analysis.get("subject", "") or flag.subject,
+                "sender_email": analysis.get("from", {}).get("email", "") or flag.sender_email,
+                "sender_domain": analysis.get("from", {}).get("domain", ""),
+                "reply_to_email": analysis.get("reply_to", {}).get("email", ""),
+                "spf": first_auth.get("spf") or "",
+                "dkim": first_auth.get("dkim") or "",
+                "dmarc": first_auth.get("dmarc") or "",
+                "provider": analysis.get("provider_hint", ""),
+                "risk_level": risk,
+                "raw_analysis": analysis,
+            },
+        )
+        saved = created
+
+    flag.delete()
+    return JsonResponse({"status": "ok", "risk_level": risk, "saved": saved})
+
+
+@require_POST
+def dismiss_flagged_view(request, flag_id):
+    flag = get_object_or_404(FlaggedEmail, id=flag_id)
+    flag.delete()
+    return JsonResponse({"status": "dismissed"})
+
+
+@require_POST
+def delete_result_view(request, result_id):
+    result = get_object_or_404(AnalysisResult, id=result_id)
+    result.delete()
+    return JsonResponse({"status": "deleted"})
