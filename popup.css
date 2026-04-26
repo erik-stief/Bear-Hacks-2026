@@ -1,8 +1,14 @@
+@font-face {
+    font-family: 'HomeVideo';
+    src: url('assets/fonts/HomeVideo-BLG6G.ttf') format('truetype');
+}
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Poppins', sans-serif;
+    font-family: 'HomeVideo', sans-serif;
+    text-align: center;
 }
 
 html {
@@ -57,6 +63,7 @@ body {
     font-weight: 750;
     text-align: center;
     color: white;
+    margin-bottom: 0.75rem;
 }
 
 .wrapping {
@@ -82,29 +89,32 @@ body {
 }
 
 .wrapping button {
-    height: 45px;
-    color: white;
-    background-color: rgb(0, 15, 126);
-    font-size: 12px;
+    flex: 1;
+    color: rgba(255, 255, 255, 0.75);
+    background: transparent;
+    font-family: 'HomeVideo', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
     cursor: pointer;
-    transition: 0.3s ease;
-    border: none;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    padding: 1rem 1rem;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 0.5rem 1.4rem;
     margin-top: 15px;
-    margin-left: 35px;
 }
 
 .wrapping button:hover {
-    background-color: rgb(15, 111, 255);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    background: rgb(0, 15, 126);
+    border-color: rgb(15, 111, 255);
+    color: #ffffff;
+    box-shadow: 0 2px 14px rgba(15, 111, 255, 0.4);
 }
 
 .row {
     display: flex;
     gap: 8px;
     margin-bottom: 8px;
+    justify-content: center;
 }
 
 .wrapping #list {
@@ -124,63 +134,103 @@ body {
     text-align: center;
 }
 
-.wrapping #list .item {
-    border: 1px solid rgba(0, 0, 0, .08);
-    border-radius: 8px;
-    padding: 8px;
-    cursor: pointer;
+/* ── Table matching Django dashboard style ── */
+#list .table-wrapper {
+    background: rgba(3, 0, 12, 0.6);
+    border: 1px solid rgba(15, 111, 255, 0.25);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
 
-.wrapping #list .item:hover {
-    background: rgba(0, 0, 0, 0.199);
+#list table {
+    width: 100%;
+    border-collapse: collapse;
 }
 
-.wrapping .meta {
-    font-size: 12px;
-    opacity: .8;
+#list thead {
+    background: linear-gradient(90deg, #03000c, rgb(0, 15, 126));
+    border-bottom: 2px solid rgb(15, 111, 255);
 }
 
-.wrapping .score {
-    float: right;
-    font-weight: 600;
+#list thead th {
+    padding: 0.55rem 0.6rem;
+    text-align: left;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: rgba(255, 255, 255, 0.9);
 }
 
-.wrapping .low {
-    color: #0a7a0a;
+#list tbody tr {
+    border-bottom: 1px solid rgba(15, 111, 255, 0.08);
+    transition: background 0.15s ease;
 }
 
-.wrapping .mid {
-    color: #b56b00;
+#list tbody tr:last-child {
+    border-bottom: none;
 }
 
-.wrapping .high {
-    color: #b00020;
+#list tbody tr:hover {
+    background: rgba(15, 111, 255, 0.1);
+}
+
+#list tbody td {
+    padding: 0.5rem 0.6rem;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.8);
+    vertical-align: middle;
+}
+
+.from-cell {
+    font-size: 0.68rem;
+    color: rgba(255, 255, 255, 0.85);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 90px;
 }
 
 .wrapping .subj {
-    font-size: 13px;
-    margin: 2px 0;
     white-space: nowrap;
-    text-overflow: ellipsis;
     overflow: hidden;
-    color: #51d8b7
+    text-overflow: ellipsis;
+    max-width: 80px;
+    color: #51d8b7;
 }
 
-/* style for reasons */
 .wrapping .reasons {
-    font-size: 11px;
-    color: white;
-    opacity: 0.85;
+    font-size: 0.6rem;
+    color: rgba(255, 255, 255, 0.55);
     margin-top: 2px;
     line-height: 1.3;
-    white-space: normal; /* allow wrapping for longer reason text */
+    white-space: normal;
 }
 
+.wrapping .score {
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-align: center;
+    display: block;
+}
+
+.risk-label {
+    font-size: 0.6rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.wrapping .low  { color: #0a7a0a; }
+.wrapping .mid  { color: #b56b00; }
+.wrapping .high { color: #b00020; }
+
 .seaweed {
-    position: absolute;
-    top: 50%;
+    position: fixed;
+    bottom: 0;
     left: 0;
-    width: 100%;
+    width: 30%;
     z-index: 0;
     opacity: 0.2;
     pointer-events: none;
@@ -189,11 +239,9 @@ body {
 }
 
 .seaweed img {
-    width: 36.667%;
+    width: 100%;
     height: auto;
-    display: inline-block;
-    vertical-align: bottom;
-    margin-right: -5%;
+    display: block;
 }
 
 .glow {

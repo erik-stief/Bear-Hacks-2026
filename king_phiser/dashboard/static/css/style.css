@@ -152,7 +152,7 @@ table {
 }
 
 thead {
-    background: linear-gradient(90deg, var(--navy-dark), var(--btn-blue));
+    background: var(--btn-blue);
     border-bottom: 2px solid var(--btn-hover);
 }
 

@@ -21,7 +21,6 @@
         </a>
         <ul class="nav-links">
             <li><a href="{% url 'spammer:spam_home' %}"  class="{% if request.resolver_match.url_name == 'spam_home' %}active{% endif %}">Spammer</a></li>
-            <li><a href="{% url 'targeter:targ_home' %}" class="{% if request.resolver_match.url_name == 'targ_home' %}active{% endif %}">Targeting</a></li>
         </ul>
     </nav>
 

@@ -9,12 +9,16 @@ loginBtn.addEventListener("click", async () => {
 
 refreshBtn.addEventListener("click", () => loadList());
 
+function emptyTable(message) {
+  return `<div class="table-wrapper"><table><tbody><tr><td colspan="3">${message}</td></tr></tbody></table></div>`;
+}
+
 async function loadList() {
-  listEl.innerHTML = "<li>Analyzing Inbox...</li>";
+  listEl.innerHTML = emptyTable("Analyzing Inbox...");
 
   const msgs = await chrome.runtime.sendMessage({ type: "PT_LIST_MESSAGES" });
   if (!msgs?.ok) {
-    listEl.innerHTML = "<li>Connect Gmail to start scanning.</li>";
+    listEl.innerHTML = emptyTable("Connect Gmail to start scanning.");
     return;
   }
 
@@ -25,7 +29,6 @@ async function loadList() {
 
       const { parsed, score, rawHeaders } = scored;
 
-      // SECONDARY SCAN: If Risk is Mid or High, print and POST headers
       if (score.risk.css === "mid" || score.risk.css === "high") {
         chrome.runtime.sendMessage({
           type: "PT_COLLECT_HEADERS",
@@ -45,21 +48,34 @@ async function loadList() {
     })
   );
 
-  listEl.innerHTML = "";
-  rows.filter(Boolean).forEach(row => {
-    const li = document.createElement("li");
-    li.className = "item";
+  const filtered = rows.filter(Boolean);
+  if (filtered.length === 0) {
+    listEl.innerHTML = emptyTable("No emails found.");
+    return;
+  }
+
+  const tbody = filtered.map(row => {
     const reasons = row.reasons.length > 0 ? row.reasons.join(" • ") : "No forensic flags";
-    
-    li.innerHTML = `
-      <div class="meta">
-        ${row.from} <span class="score ${row.risk.css}">${Math.round(row.score)} (${row.risk.label})</span>
-      </div>
-      <div class="subj">${row.subject}</div>
-      <div class="reasons">${reasons}</div>
-    `;
-    listEl.appendChild(li);
-  });
+    return `
+      <tr>
+        <td>
+          <div class="from-cell">${row.from}</div>
+          <div class="reasons">${reasons}</div>
+        </td>
+        <td class="subj">${row.subject}</td>
+        <td><span class="score ${row.risk.css}">${Math.round(row.score)}<br><span class="risk-label">${row.risk.label}</span></span></td>
+      </tr>`;
+  }).join("");
+
+  listEl.innerHTML = `
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th>From</th><th>Subject</th><th>Risk</th></tr>
+        </thead>
+        <tbody>${tbody}</tbody>
+      </table>
+    </div>`;
 }
 
 if (self.PT_CONFIG?.AUTO_SCAN_ON_OPEN) {
