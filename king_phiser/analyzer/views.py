@@ -1,6 +1,7 @@
 import json
 
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
@@ -118,9 +119,40 @@ def flag_email_view(request):
     return JsonResponse({"status": "created" if created else "exists"})
 
 
+@require_POST
 def analyze_flagged_view(request, flag_id):
-    return JsonResponse({"status": "not implemented"}, status=501)
+    flag = get_object_or_404(FlaggedEmail, id=flag_id)
+
+    analysis = analyze_headers(flag.raw_headers)
+    risk = _compute_risk(analysis)
+
+    auth_results = analysis.get("authentication_results", [{}])
+    first_auth = auth_results[0] if auth_results else {}
+
+    saved = False
+    if risk != "safe":
+        token = APIToken.objects.filter(user=request.user).first()
+        AnalysisResult.objects.create(
+            token=token,
+            subject=analysis.get("subject", "") or flag.subject,
+            sender_email=analysis.get("from", {}).get("email", "") or flag.sender_email,
+            sender_domain=analysis.get("from", {}).get("domain", ""),
+            reply_to_email=analysis.get("reply_to", {}).get("email", ""),
+            spf=first_auth.get("spf") or "",
+            dkim=first_auth.get("dkim") or "",
+            dmarc=first_auth.get("dmarc") or "",
+            provider=analysis.get("provider_hint", ""),
+            risk_level=risk,
+            raw_analysis=analysis,
+        )
+        saved = True
+
+    flag.delete()
+    return JsonResponse({"status": "ok", "risk_level": risk, "saved": saved})
 
 
+@require_POST
 def dismiss_flagged_view(request, flag_id):
-    return JsonResponse({"status": "not implemented"}, status=501)
+    flag = get_object_or_404(FlaggedEmail, id=flag_id)
+    flag.delete()
+    return JsonResponse({"status": "dismissed"})

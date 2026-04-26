@@ -79,3 +79,43 @@ class FlagEmailViewTest(TestCase):
     def test_flag_rejects_missing_token(self):
         response = self.client.post("/api/flag/", data=json.dumps({}), content_type="application/json")
         self.assertEqual(response.status_code, 401)
+
+
+class AnalyzeFlaggedViewTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="tester2", password="pass")
+        self.token = APIToken.objects.create(user=self.user, label="test")
+        self.client.force_login(self.user)
+        self.flag = FlaggedEmail.objects.create(
+            gmail_message_id="msg_x",
+            subject="Urgent: verify account",
+            sender_email="phish@evil.com",
+            local_risk_label="high",
+            raw_headers=(
+                "From: phish@evil.com\r\n"
+                "Subject: Urgent: verify account\r\n"
+                "Reply-To: steal@other.com\r\n"
+                "Authentication-Results: mx.google.com; spf=fail; dkim=fail; dmarc=fail"
+            ),
+        )
+
+    def test_analyze_deletes_flag(self):
+        response = self.client.post(f"/api/flagged/{self.flag.id}/analyze/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(FlaggedEmail.objects.count(), 0)
+
+    def test_analyze_returns_risk_level(self):
+        response = self.client.post(f"/api/flagged/{self.flag.id}/analyze/")
+        data = response.json()
+        self.assertIn("risk_level", data)
+        self.assertIn(data["risk_level"], ["safe", "suspicious", "phishing"])
+
+    def test_dismiss_deletes_flag(self):
+        response = self.client.post(f"/api/flagged/{self.flag.id}/dismiss/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(FlaggedEmail.objects.count(), 0)
+        self.assertEqual(response.json()["status"], "dismissed")
+
+    def test_analyze_404_on_missing_flag(self):
+        response = self.client.post("/api/flagged/9999/analyze/")
+        self.assertEqual(response.status_code, 404)
