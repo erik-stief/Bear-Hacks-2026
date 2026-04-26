@@ -1,7 +1,7 @@
 {% extends 'dashboard/base.html' %}
 {% load static %}
 
-{% block title %}Dashboard — KingPhisher{% endblock %}
+{% block title %}Dashboard — KingPhisher{% endblock title %}
 
 {% block content %}
 
@@ -9,16 +9,18 @@
     <div class="hero">
         <div class="hero-text">
             <h1>Spammer</h1>
-            <p>Campaign overview &amp; activity log</p>
+            <p>Spam a target address with thousands of emails</p>
         </div>
     </div>
 
     <!-- ── Main ── -->
     <main>
         <div class="section-header">
-            <h2>Campaign Records</h2>
+            <h2>List of emails that are flagged as malicious</h2>
         </div>
-
+        <div>
+            <h4>All attacks must be manually approved by the user</h4>
+        </div>
         <div class="table-wrapper">
             <table>
                 <thead>

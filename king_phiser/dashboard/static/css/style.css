@@ -7,6 +7,12 @@
     --muted:      rgba(255,255,255,0.55);
 }
 
+@font-face {
+    font-family: 'HomeVideo';
+    src: url('../fonts/HomeVideo-BLG6G.ttf') format('truetype');
+}
+
+
 * {
     margin: 0;
     padding: 0;
@@ -14,7 +20,7 @@
 }
 
 body {
-    font-family: 'Poppins', sans-serif;
+    font-family: 'HomeVideo', sans-serif;
     background: linear-gradient(to bottom, var(--navy-dark), var(--navy-mid));
     min-height: 100vh;
     color: var(--white);

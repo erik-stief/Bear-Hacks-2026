@@ -27,27 +27,26 @@
 
     {% block content %}{% endblock %}
 
-    <footer>
-        &copy; {{ now|date:"Y" }} KingPhisher &mdash; authorised use only
-    </footer>
+    <!-- ── Kingfisher ── -->
+    <img src="{% static 'images/kingfisher_RtL.gif' %}" style="position:fixed;top:80px;right:0;z-index:50;pointer-events:none;transform:scale(4);transform-origin:top right;image-rendering: pixelated;">
 
     <!-- ── Decorative seaweed ── -->
     <div class="seaweed">
-        <img src="{% static 'images/seaweed4.gif' %}">
-        <img src="{% static 'images/seaweed2.gif' %}" style="flex:0.8">
-        <img src="{% static 'images/seaweed3.gif' %}">
-        <img src="{% static 'images/seaweed1.gif' %}">
-        <img src="{% static 'images/seaweed1.gif' %}" style="flex:0.8">
-        <img src="{% static 'images/seaweed2.gif' %}">
-        <img src="{% static 'images/seaweed3.gif' %}" style="flex:0.8">
-        <img src="{% static 'images/seaweed2.gif' %}">
-        <img src="{% static 'images/seaweed1.gif' %}">
-        <img src="{% static 'images/seaweed4.gif' %}" style="flex:0.8">
-        <img src="{% static 'images/seaweed2.gif' %}">
-        <img src="{% static 'images/seaweed1.gif' %}">
-        <img src="{% static 'images/seaweed4.gif' %}" style="flex:0.8">
-        <img src="{% static 'images/seaweed3.gif' %}">
-        <img src="{% static 'images/seaweed2.gif' %}" style="flex:0.8">
+        <img src="{% static 'images/seaweed4.gif' %}" style="transform:scale(1.02)">
+        <img src="{% static 'images/seaweed2.gif' %}" style="opacity:0">
+        <img src="{% static 'images/seaweed3.gif' %}" style="transform:scale(0.91)">
+        <img src="{% static 'images/seaweed1.gif' %}" style="transform:scale(1.07)">
+        <img src="{% static 'images/seaweed1.gif' %}" style="opacity:0">
+        <img src="{% static 'images/seaweed2.gif' %}" style="transform:scale(0.86)">
+        <img src="{% static 'images/seaweed3.gif' %}" style="opacity:0">
+        <img src="{% static 'images/seaweed2.gif' %}" style="transform:scale(0.97)">
+        <img src="{% static 'images/seaweed1.gif' %}" style="transform:scale(0.88)">
+        <img src="{% static 'images/seaweed4.gif' %}" style="opacity:0">
+        <img src="{% static 'images/seaweed2.gif' %}" style="transform:scale(1.05)">
+        <img src="{% static 'images/seaweed1.gif' %}" style="transform:scale(0.93)">
+        <img src="{% static 'images/seaweed4.gif' %}" style="opacity:0">
+        <img src="{% static 'images/seaweed3.gif' %}" style="transform:scale(0.84)">
+        <img src="{% static 'images/seaweed2.gif' %}" style="opacity:0">
     </div>
 
     <!-- ── Glowy floaters ── -->
