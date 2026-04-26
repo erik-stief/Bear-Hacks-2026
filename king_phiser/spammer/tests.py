@@ -72,7 +72,7 @@ class SpamSenderViewTest(TestCase):
         response = self.client.post(f"/dashboard/spammer/send/{self.result.id}/")
         b"".join(response.streaming_content)
         for call in mock_send_mail.call_args_list:
-            recipient_list = call.kwargs.get("recipient_list") or (call.args[3] if len(call.args) > 3 else [])
+            recipient_list = call.kwargs["recipient_list"]
             self.assertIn("evil@phish.com", recipient_list)
 
     def test_requires_post(self):
