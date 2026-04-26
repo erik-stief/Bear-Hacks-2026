@@ -26,7 +26,7 @@ def spam_sender_view(request, result_id):
         for i in range(1, 101):
             try:
                 send_mail(
-                    subject="Get King Phished!",
+                    subject=f"Get King Phished Slapped #{i}!",
                     message="This is a counter-attack from King Phisher.",
                     from_email=settings.EMAIL_HOST_USER,
                     recipient_list=[target_email],

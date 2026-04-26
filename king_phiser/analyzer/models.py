@@ -26,6 +26,7 @@ class AnalysisResult(models.Model):
         ("phishing", "Phishing"),
     ]
 
+    gmail_message_id = models.CharField(max_length=64, blank=True, null=True, unique=True)
     token = models.ForeignKey(
         APIToken, null=True, blank=True, on_delete=models.SET_NULL, related_name="results"
     )

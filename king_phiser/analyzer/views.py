@@ -20,7 +20,7 @@ def _authenticate_token(request):
     return None
 
 
-def _compute_risk(analysis: dict) -> str:
+def _compute_risk(analysis: dict, local_risk_label: str = "") -> str:
     auth_results = analysis.get("authentication_results", [])
     if not auth_results:
         return "suspicious"
@@ -41,6 +41,9 @@ def _compute_risk(analysis: dict) -> str:
     if failures >= 2 or (failures >= 1 and domain_mismatch):
         return "phishing"
     if failures == 1 or domain_mismatch:
+        return "suspicious"
+    # Headers are clean but extension's content scan flagged this as risky
+    if local_risk_label in ("high", "mid"):
         return "suspicious"
     return "safe"
 
@@ -125,7 +128,7 @@ def analyze_flagged_view(request, flag_id):
     flag = get_object_or_404(FlaggedEmail, id=flag_id)
 
     analysis = analyze_headers(flag.raw_headers)
-    risk = _compute_risk(analysis)
+    risk = _compute_risk(analysis, local_risk_label=flag.local_risk_label)
 
     auth_results = analysis.get("authentication_results", [{}])
     first_auth = auth_results[0] if auth_results else {}
@@ -133,20 +136,23 @@ def analyze_flagged_view(request, flag_id):
     saved = False
     if risk != "safe":
         token = APIToken.objects.filter(user=request.user).first()
-        AnalysisResult.objects.create(
-            token=token,
-            subject=analysis.get("subject", "") or flag.subject,
-            sender_email=analysis.get("from", {}).get("email", "") or flag.sender_email,
-            sender_domain=analysis.get("from", {}).get("domain", ""),
-            reply_to_email=analysis.get("reply_to", {}).get("email", ""),
-            spf=first_auth.get("spf") or "",
-            dkim=first_auth.get("dkim") or "",
-            dmarc=first_auth.get("dmarc") or "",
-            provider=analysis.get("provider_hint", ""),
-            risk_level=risk,
-            raw_analysis=analysis,
+        _, created = AnalysisResult.objects.get_or_create(
+            gmail_message_id=flag.gmail_message_id,
+            defaults={
+                "token": token,
+                "subject": analysis.get("subject", "") or flag.subject,
+                "sender_email": analysis.get("from", {}).get("email", "") or flag.sender_email,
+                "sender_domain": analysis.get("from", {}).get("domain", ""),
+                "reply_to_email": analysis.get("reply_to", {}).get("email", ""),
+                "spf": first_auth.get("spf") or "",
+                "dkim": first_auth.get("dkim") or "",
+                "dmarc": first_auth.get("dmarc") or "",
+                "provider": analysis.get("provider_hint", ""),
+                "risk_level": risk,
+                "raw_analysis": analysis,
+            },
         )
-        saved = True
+        saved = created
 
     flag.delete()
     return JsonResponse({"status": "ok", "risk_level": risk, "saved": saved})
@@ -157,3 +163,10 @@ def dismiss_flagged_view(request, flag_id):
     flag = get_object_or_404(FlaggedEmail, id=flag_id)
     flag.delete()
     return JsonResponse({"status": "dismissed"})
+
+
+@require_POST
+def delete_result_view(request, result_id):
+    result = get_object_or_404(AnalysisResult, id=result_id)
+    result.delete()
+    return JsonResponse({"status": "deleted"})

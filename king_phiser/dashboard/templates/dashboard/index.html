@@ -20,7 +20,7 @@
         </button>
         <button class="tab-btn" data-tab="results">Analysis Results</button>
     </div>
-
+    <br>
     <!-- ── Tab: Pending Review ── -->
     <div id="tab-pending" class="tab-panel active">
         <div class="section-header">
@@ -86,12 +86,13 @@
                         <th>DMARC</th>
                         <th>Risk</th>
                         <th>Analyzed</th>
+                        <th></th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="results-tbody">
                     {% if records %}
                         {% for record in records %}
-                        <tr>
+                        <tr id="result-row-{{ record.id }}">
                             <td>{{ forloop.counter }}</td>
                             <td>{{ record.subject|truncatechars:60 }}</td>
                             <td>{{ record.sender_email }}</td>
@@ -101,11 +102,14 @@
                             <td>{{ record.dmarc|default:"—" }}</td>
                             <td><span class="badge badge-{{ record.risk_level }}">{{ record.risk_level }}</span></td>
                             <td>{{ record.analyzed_at|date:"d M Y H:i" }}</td>
+                            <td class="action-cell">
+                                <button class="btn-delete-result" data-id="{{ record.id }}">Remove</button>
+                            </td>
                         </tr>
                         {% endfor %}
                     {% else %}
-                        <tr>
-                            <td colspan="9">
+                        <tr id="results-empty">
+                            <td colspan="10">
                                 <div class="table-empty">
                                     <img src="{% static 'images/Bubbles Throbber.gif' %}" alt="Loading">
                                     <p>No analysis results yet — review and submit emails from the Pending tab.</p>
@@ -118,6 +122,17 @@
         </div>
     </div>
 </main>
+
+<!-- ── Confirm delete modal ── -->
+<div id="confirm-modal" class="modal-overlay hidden">
+    <div class="modal-box">
+        <p>Remove this result from the analysis table? This cannot be undone.</p>
+        <div class="modal-actions">
+            <button id="modal-confirm" class="btn-modal-confirm">Remove</button>
+            <button id="modal-cancel" class="btn-modal-cancel">Cancel</button>
+        </div>
+    </div>
+</div>
 
 <script>
 (function () {
@@ -165,6 +180,59 @@
                 alert('Analysis failed. Please try again.');
             }
         });
+    });
+
+    // Confirm modal wiring
+    const modal = document.getElementById('confirm-modal');
+    let pendingDeleteId = null;
+    let pendingDeleteBtn = null;
+
+    document.querySelectorAll('.btn-delete-result').forEach(btn => {
+        btn.addEventListener('click', () => {
+            pendingDeleteId = btn.dataset.id;
+            pendingDeleteBtn = btn;
+            modal.classList.remove('hidden');
+        });
+    });
+
+    document.getElementById('modal-cancel').addEventListener('click', () => {
+        modal.classList.add('hidden');
+        pendingDeleteId = null;
+        pendingDeleteBtn = null;
+    });
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.add('hidden');
+            pendingDeleteId = null;
+            pendingDeleteBtn = null;
+        }
+    });
+
+    document.getElementById('modal-confirm').addEventListener('click', async () => {
+        if (!pendingDeleteId) return;
+        const id = pendingDeleteId;
+        const btn = pendingDeleteBtn;
+        modal.classList.add('hidden');
+        pendingDeleteId = null;
+        pendingDeleteBtn = null;
+        if (btn) btn.disabled = true;
+        try {
+            const res = await fetch(`/api/result/${id}/delete/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCookie('csrftoken') },
+            });
+            if (!res.ok) throw new Error('Server error');
+            const row = document.getElementById('result-row-' + id);
+            if (row) row.remove();
+            if (!document.querySelector('#results-tbody tr[id^="result-row-"]')) {
+                document.getElementById('results-tbody').innerHTML =
+                    '<tr id="results-empty"><td colspan="10"><div class="table-empty"><p>No analysis results yet.</p></div></td></tr>';
+            }
+        } catch (e) {
+            if (btn) btn.disabled = false;
+            alert('Remove failed. Please try again.');
+        }
     });
 
     // Dismiss buttons

@@ -422,7 +422,10 @@ footer {
 }
 
 .btn-analyze,
-.btn-dismiss {
+.btn-dismiss,
+.btn-delete-result,
+.btn-modal-confirm,
+.btn-modal-cancel {
     font-family: 'HomeVideo', sans-serif;
     font-size: 0.7rem;
     padding: 0.35rem 0.75rem;
@@ -451,8 +454,67 @@ footer {
     color: var(--white);
 }
 
+.btn-delete-result,
+.btn-modal-cancel {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--muted);
+}
+
+.btn-delete-result:hover:not(:disabled),
+.btn-modal-cancel:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--white);
+}
+
+.btn-modal-confirm {
+    background: #8b1a1a;
+    color: var(--white);
+}
+
+.btn-modal-confirm:hover:not(:disabled) {
+    background: #b22222;
+}
+
 .btn-analyze:disabled,
-.btn-dismiss:disabled {
+.btn-dismiss:disabled,
+.btn-delete-result:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+}
+
+/* ── Confirm modal ── */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-overlay.hidden { display: none; }
+
+.modal-box {
+    background: var(--card-bg, #0d1b2e);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    padding: 2rem 2.5rem;
+    max-width: 360px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+.modal-box p {
+    margin: 0 0 1.5rem;
+    font-size: 0.95rem;
+    color: var(--white, #fff);
+    line-height: 1.5;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
 }
